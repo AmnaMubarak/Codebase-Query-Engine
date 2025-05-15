@@ -1,0 +1,5 @@
+# add pakage requirements here
+fastapi
+uvicorn
+pydantic
+python-multipart
