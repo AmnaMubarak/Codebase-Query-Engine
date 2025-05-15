@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Code Assistant - Flow Diagram</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <style>
+        body {
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 1200px;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .back-link {
+            margin-top: 20px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mb-4">RAG Code Assistant - Process Flow Diagram</h1>
+        
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h3 class="mb-0">Main Process Flows</h3>
+            </div>
+            <div class="card-body">
+                <div class="mermaid">
+                    flowchart TD
+                        subgraph "Code Processing"
+                            CP1[User uploads code] --> CP2{File type?}
+                            CP2 -->|ZIP file| CP3[Extract ZIP]
+                            CP2 -->|RAR file| CP4[Extract RAR]
+                            CP2 -->|GitHub URL| CP5[Clone Repository]
+                            CP3 & CP4 & CP5 --> CP6[List Code Files]
+                            CP6 --> CP7[Process Files by Language]
+                            CP7 --> CP8[Generate Text Chunks]
+                            CP8 --> CP9[Create Embeddings]
+                            CP9 --> CP10[Store in Vector DB]
+                            CP10 --> CP11[Return Collection Name]
+                        end
+
+                        subgraph "Question Answering"
+                            QA1[User submits question] --> QA2[Retrieve Collection]
+                            QA2 --> QA3[Generate Embeddings for Query]
+                            QA3 --> QA4[Search Vector DB]
+                            QA4 --> QA5[Retrieve Top Matches]
+                            QA5 --> QA6[Format Context]
+                            QA6 --> QA7[Generate Answer with LLM]
+                            QA7 --> QA8[Return Answer with Sources]
+                        end
+
+                        subgraph "Log Analysis"
+                            LA1[User uploads log file] --> LA2[Extract Error Patterns]
+                            LA2 --> LA3[Identify Timestamps]
+                            LA3 --> LA4[Generate Log Chunks]
+                            LA4 --> LA5[Create Embeddings]
+                            LA5 --> LA6[Store in Vector DB]
+                            LA6 --> LA7[Return Analysis Report]
+                        end
+
+                        subgraph "Code Analysis"
+                            CA1[User requests analysis] --> CA2[Generate Common Issue Questions]
+                            CA2 --> CA3[Query for Security Issues]
+                            CA2 --> CA4[Query for Performance Issues]
+                            CA2 --> CA5[Query for Error Handling]
+                            CA2 --> CA6[Query for Code Quality]
+                            CA3 & CA4 & CA5 & CA6 --> CA7[Compile Analysis Report]
+                            CA7 --> CA8[Return Findings]
+                        end
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h3 class="mb-0">Detailed Code Processing Flow</h3>
+            </div>
+            <div class="card-body">
+                <div class="mermaid">
+                    flowchart TD
+                        A[Start: User uploads code] --> B{File type?}
+                        B -->|ZIP file| C1[Extract ZIP in temp directory]
+                        B -->|RAR file| C2[Extract RAR in temp directory]
+                        B -->|GitHub URL| C3[Clone repo to temp directory]
+                        
+                        C1 & C2 & C3 --> D[Generate file list]
+                        D --> E[For each file]
+                        
+                        E --> F[Detect language based on extension]
+                        F --> G{Language detected?}
+                        
+                        G -->|Yes| H1[Use language-specific splitter]
+                        G -->|No| H2[Use default splitter]
+                        
+                        H1 & H2 --> I[Split code into chunks]
+                        I --> J[Add metadata (file, language)]
+                        J --> K[Generate embeddings]
+                        K --> L[Store in ChromaDB]
+                        
+                        L --> M{More files?}
+                        M -->|Yes| E
+                        M -->|No| N[Return collection ID]
+                        N --> O[End: Ready for querying]
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-info text-white">
+                <h3 class="mb-0">Question Answering Process</h3>
+            </div>
+            <div class="card-body">
+                <div class="mermaid">
+                    flowchart TD
+                        A[Start: User asks question] --> B[Identify collection name]
+                        B --> C[Load vector DB for collection]
+                        C --> D[Generate embedding for question]
+                        D --> E[Perform similarity search]
+                        E --> F[Retrieve top K matches]
+                        
+                        F --> G[Format context with code snippets]
+                        G --> H[Construct prompt with context & question]
+                        H --> I[Send to LLM for inference]
+                        I --> J[Generate comprehensive answer]
+                        J --> K[Extract source references]
+                        
+                        K --> L[Return answer with sources]
+                        L --> M[End: Display to user]
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header bg-warning text-dark">
+                <h3 class="mb-0">Log Analysis Process</h3>
+            </div>
+            <div class="card-body">
+                <div class="mermaid">
+                    flowchart TD
+                        A[Start: User uploads log file] --> B[Read log content]
+                        B --> C[Apply regex patterns for errors]
+                        C --> D[Extract error contexts]
+                        
+                        B --> E[Identify timestamps]
+                        E --> F[Determine time range]
+                        
+                        D --> G[Count errors by type]
+                        G --> H[Generate error report]
+                        
+                        B --> I[Split log into chunks]
+                        I --> J[Generate embeddings]
+                        J --> K[Store in vector DB]
+                        
+                        F & H & K --> L[Create analysis summary]
+                        L --> M[End: Display analysis to user]
+                </div>
+            </div>
+        </div>
+        
+        <a href="/" class="btn btn-primary back-link">Back to Main Page</a>
+    </div>
+
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true,
+                curve: 'basis'
+            }
+        });
+    </script>
+</body>
+</html> 
