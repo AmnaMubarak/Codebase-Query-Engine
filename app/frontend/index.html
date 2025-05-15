@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Code Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        body {
+            padding-top: 20px;
+            background-color: #f8f9fa;
+        }
+        .code-container {
+            background-color: #272822;
+            color: #f8f8f2;
+            border-radius: 5px;
+            padding: 15px;
+            overflow-x: auto;
+            font-family: 'Courier New', monospace;
+            margin-bottom: 10px;
+        }
+        .code-path {
+            color: #66d9ef;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .chat-container {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 5px;
+            padding: 15px;
+            background-color: white;
+        }
+        .user-message {
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+            margin-left: auto;
+        }
+        .assistant-message {
+            background-color: #d1e7ff;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            max-width: 80%;
+        }
+        .project-card {
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .project-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #495057;
+            font-weight: 500;
+        }
+        .nav-tabs .nav-link.active {
+            border-bottom: 3px solid #007bff;
+            color: #007bff;
+            background-color: transparent;
+        }
+        .progress-container {
+            margin: 20px 0;
+        }
+        #projectsList {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header class="mb-4">
+            <div class="row align-items-center">
+                <div class="col-md-8">
+                    <h1 class="display-5"><i class="bi bi-code-square text-primary"></i> RAG Code Assistant</h1>
+                    <p class="lead">AI-powered code understanding and analysis tool</p>
+                </div>
+                <div class="col-md-4 text-end">
+                    <a href="https://github.com/your-username/rag-code-assistant" target="_blank" class="btn btn-outline-dark">
+                        <i class="bi bi-github"></i> GitHub
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card mb-4">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0"><i class="bi bi-folder"></i> Projects</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="list-group list-group-flush" id="projectsList">
+                            <div class="text-center py-5 text-muted">
+                                <i class="bi bi-folder-x" style="font-size: 3rem;"></i>
+                                <p class="mt-2">No projects yet</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-footer">
+                        <button class="btn btn-primary w-100" data-bs-toggle="modal" data-bs-target="#addProjectModal">
+                            <i class="bi bi-plus-circle"></i> Add Project
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header bg-white p-0">
+                        <ul class="nav nav-tabs card-header-tabs">
+                            <li class="nav-item">
+                                <a class="nav-link active" id="chat-tab" data-bs-toggle="tab" href="#chat">
+                                    <i class="bi bi-chat-dots"></i> Chat
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="analyze-tab" data-bs-toggle="tab" href="#analyze">
+                                    <i class="bi bi-search"></i> Code Analysis
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" id="logs-tab" data-bs-toggle="tab" href="#logs">
+                                    <i class="bi bi-file-text"></i> Log Analysis
+                                </a>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="card-body">
+                        <div class="tab-content">
+                            <!-- Chat Tab -->
+                            <div class="tab-pane fade show active" id="chat">
+                                <div id="noChatProject" class="text-center py-5">
+                                    <i class="bi bi-chat-square-text" style="font-size: 4rem; color: #adb5bd;"></i>
+                                    <h4 class="mt-3">Select a project to start chatting</h4>
+                                    <p class="text-muted">Choose a project from the sidebar or add a new one.</p>
+                                </div>
+                                
+                                <div id="chatInterface" style="display: none;">
+                                    <h4 id="chatProjectName">Project Name</h4>
+                                    <div class="chat-container mb-3" id="chatMessages">
+                                        <div class="assistant-message">
+                                            <strong>Assistant:</strong> Hi! I'm your RAG Code Assistant. I can help with both general questions and code-specific queries about your project. How can I help you today?
+                                        </div>
+                                    </div>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="chatInput" placeholder="Ask a question about your code...">
+                                        <button class="btn btn-primary" id="sendButton">
+                                            <i class="bi bi-send"></i> Send
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Code Analysis Tab -->
+                            <div class="tab-pane fade" id="analyze">
+                                <div id="noAnalysisProject" class="text-center py-5">
+                                    <i class="bi bi-search" style="font-size: 4rem; color: #adb5bd;"></i>
+                                    <h4 class="mt-3">Select a project to analyze</h4>
+                                    <p class="text-muted">Choose a project from the sidebar or add a new one.</p>
+                                </div>
+                                
+                                <div id="analysisInterface" style="display: none;">
+                                    <h4 id="analysisProjectName">Project Name</h4>
+                                    <div class="mb-3">
+                                        <label for="analysisType" class="form-label">Analysis Type</label>
+                                        <select class="form-select" id="analysisType">
+                                            <option value="quality">Code Quality</option>
+                                            <option value="security">Security Vulnerabilities</option>
+                                            <option value="performance">Performance Issues</option>
+                                            <option value="memory">Memory Leaks</option>
+                                        </select>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="filePath" class="form-label">File Path (Optional)</label>
+                                        <input type="text" class="form-control" id="filePath" placeholder="Enter file path or leave empty for project-wide analysis">
+                                    </div>
+                                    <button class="btn btn-primary" id="analyzeButton">
+                                        <i class="bi bi-search"></i> Analyze
+                                    </button>
+                                    
+                                    <div class="mt-4" id="analysisResults" style="display: none;">
+                                        <h5><i class="bi bi-clipboard-data"></i> Analysis Results</h5>
+                                        <div class="card">
+                                            <div class="card-body" id="analysisContent">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Log Analysis Tab -->
+                            <div class="tab-pane fade" id="logs">
+                                <div id="noLogsProject" class="text-center py-5">
+                                    <i class="bi bi-file-text" style="font-size: 4rem; color: #adb5bd;"></i>
+                                    <h4 class="mt-3">Select a log project to analyze</h4>
+                                    <p class="text-muted">Choose a log project from the sidebar or add a new one.</p>
+                                </div>
+                                
+                                <div id="logsInterface" style="display: none;">
+                                    <h4 id="logsProjectName">Log Project Name</h4>
+                                    <div class="mb-3">
+                                        <label for="logQuery" class="form-label">Specific Query (Optional)</label>
+                                        <input type="text" class="form-control" id="logQuery" placeholder="Enter a specific query or leave empty for general analysis">
+                                    </div>
+                                    <button class="btn btn-primary" id="analyzeLogsButton">
+                                        <i class="bi bi-file-earmark-text"></i> Analyze Logs
+                                    </button>
+                                    
+                                    <div class="mt-4" id="logsResults" style="display: none;">
+                                        <h5><i class="bi bi-clipboard-data"></i> Log Analysis Results</h5>
+                                        <div class="card">
+                                            <div class="card-body" id="logsContent">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal fade" id="addProjectModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-plus-circle"></i> Add Project</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <ul class="nav nav-tabs" id="projectTypeTabs">
+                        <li class="nav-item">
+                            <a class="nav-link active" id="archive-tab" data-bs-toggle="tab" href="#archiveForm">Code Archive</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="github-tab" data-bs-toggle="tab" href="#githubForm">GitHub Repository</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" id="log-tab" data-bs-toggle="tab" href="#logForm">Log File</a>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content mt-3">
+                        <!-- Code Archive Form -->
+                        <div class="tab-pane fade show active" id="archiveForm">
+                            <form id="archiveUploadForm">
+                                <div class="mb-3">
+                                    <label for="archiveFile" class="form-label">ZIP/RAR Archive</label>
+                                    <input type="file" class="form-control" id="archiveFile" accept=".zip,.rar" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="archiveProjectName" class="form-label">Project Name</label>
+                                    <input type="text" class="form-control" id="archiveProjectName" required>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- GitHub Repository Form -->
+                        <div class="tab-pane fade" id="githubForm">
+                            <form id="githubForm">
+                                <div class="mb-3">
+                                    <label for="repoUrl" class="form-label">Repository URL</label>
+                                    <input type="url" class="form-control" id="repoUrl" placeholder="https://github.com/username/repo" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="repoProjectName" class="form-label">Project Name (Optional)</label>
+                                    <input type="text" class="form-control" id="repoProjectName" placeholder="Leave empty to use repository name">
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <!-- Log File Form -->
+                        <div class="tab-pane fade" id="logForm">
+                            <form id="logUploadForm">
+                                <div class="mb-3">
+                                    <label for="logFile" class="form-label">Log File</label>
+                                    <input type="file" class="form-control" id="logFile" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="logProjectName" class="form-label">Project Name</label>
+                                    <input type="text" class="form-control" id="logProjectName" required>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    
+                    <div class="progress-container" style="display: none;">
+                        <p class="text-center" id="progressStatus">Processing...</p>
+                        <div class="progress">
+                            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="addProjectButton">Add Project</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html> 
